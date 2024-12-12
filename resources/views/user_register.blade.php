@@ -67,18 +67,19 @@
 <body>
     <div class="email-container">
         <div class="header">
-            <h1>Welcome to Form.Net</h1>
+            <h1>Welcome to Farmnet</h1>
         </div>
         <div class="body">
             <p>Dear {{ $mailData['user_name'] }},</p>
-            <p>Thank you for signing up with us! We’re thrilled to have you onboard. Below is your 4-character
-                verification code:</p>
+            <p>Thank you for signing up with Farmnet! We are thrilled to have you on board. </p>
+            <p>Below is your 4-character verification code: </p>
             <p style="text-align: center; font-size: 24px; font-weight: bold; color: #4caf50;">
                 {{ $mailData['verifictionCode'] }}
             </p>
             <p>Please enter this code on the verification page to complete your registration.</p>
-            <p>If you have any questions, feel free to reply to this email. We're here to help!</p>
-            <p>Best regards,<br>Team Form.Net</p>
+            <p>If you have any questions feel free to reply to this email.</p>
+            <p>We are here to help you.</p>
+            <p>Best regards,<br>Team Farmnet.</p>
         </div>
         <div class="footer">
             &copy; 2024 Form.Net. All rights reserved.

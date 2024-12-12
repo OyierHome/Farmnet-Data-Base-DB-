@@ -56,4 +56,12 @@ class User extends Authenticatable
     {
         return $this->hasOne(Organization::class);
     }
+    public function cropProductionRecords()
+    {
+        return $this->hasMany(CropProductionRecord::class);
+    }
+    public function cropRevenueRecords()
+    {
+        return $this->hasMany(cropRevenueRecord::class);
+    }
 }

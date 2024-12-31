@@ -64,7 +64,6 @@ class User extends Authenticatable
     {
         return $this->hasMany(cropRevenueRecord::class);
     }
-<<<<<<< HEAD
     public function livestockProductionRecords()
     {
         return $this->hasMany(LivestockProductionRecord::class);
@@ -81,6 +80,4 @@ class User extends Authenticatable
     {
         return $this->hasMany(CropInventory::class);
     }
-=======
->>>>>>> ae4bcff0aa80d991d7d0fd374b31a0c584ca7e3b
 }

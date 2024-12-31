@@ -16,6 +16,7 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->string('crop_name');
             $table->string('country');
+<<<<<<< HEAD
             $table->string('ploughing_qty')->default(0)->nullable();
             $table->string('ploughing_price')->default(0)->nullable();
             $table->string('seed_qty')->default(0)->nullable();
@@ -48,6 +49,32 @@ return new class extends Migration
             $table->string('range_price')->default(0)->nullable();
             $table->string('land_size_qty')->default(0)->nullable();
             $table->string('land_size_price')->default(0)->nullable();
+=======
+            $table->string('ploughing_qty');
+            $table->string('ploughing_price');
+            $table->string('seed_qty');
+            $table->string('seed_price');
+            $table->string('fertilizer_qty');
+            $table->string('fertilizer_price');
+            $table->string('herbicides_qty');
+            $table->string('herbicides_price');
+            $table->string('pesticide_qty');
+            $table->string('pesticide_price');
+            $table->string('labour_qty');
+            $table->string('labour_price');
+            $table->string('packaing_qty');
+            $table->string('packaing_price');
+            $table->string('storage_qty');
+            $table->string('storage_price');
+            $table->string('transport_qty');
+            $table->string('transport_price');
+            $table->string('variety_qty');
+            $table->string('variety_price');
+            $table->string('equipment_qty');
+            $table->string('equipment_price');
+            $table->string('land_size_qty');
+            $table->string('land_size_price');
+>>>>>>> ae4bcff0aa80d991d7d0fd374b31a0c584ca7e3b
             $table->timestamps();
         });
     }

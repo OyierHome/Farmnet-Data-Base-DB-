@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class CropProductionRecord extends Model
 {
+<<<<<<< HEAD
     protected $fillable = [
         'user_id',
         'crop_name',
@@ -35,6 +36,9 @@ class CropProductionRecord extends Model
         'land_size_qty',
         'land_size_price',
     ];
+=======
+    protected $fillable = ['user_id', 'crop_name', 'country'];
+>>>>>>> ae4bcff0aa80d991d7d0fd374b31a0c584ca7e3b
 
     public function user()
     {

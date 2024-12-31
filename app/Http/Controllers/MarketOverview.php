@@ -4,10 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Models\CropProductionRecord;
 use App\Models\CropRevenueRecord;
+<<<<<<< HEAD
 use App\Models\LivestockProductionRecord;
 use App\Models\LivestockRevenueRecord;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+=======
+use Illuminate\Http\Request;
+>>>>>>> ae4bcff0aa80d991d7d0fd374b31a0c584ca7e3b
 
 class MarketOverview extends Controller
 {
@@ -122,19 +126,28 @@ class MarketOverview extends Controller
         }
         $crop_production = CropProductionRecord::where('country', $request->country)
             ->whereBetween('created_at', [now()->subDays(30), now()])
+<<<<<<< HEAD
             ->get()
             ->groupBy('crop_name');
+=======
+            ->get();
+>>>>>>> ae4bcff0aa80d991d7d0fd374b31a0c584ca7e3b
         if (!$crop_production) {
             return response()->json(['message' => 'No records found'], 404);
         }
         $crop_revenue = CropRevenueRecord::where('country', $request->country)
             ->whereBetween('created_at', [now()->subDays(30), now()])
+<<<<<<< HEAD
             ->get()
             ->groupBy('crop_name');
+=======
+            ->get();
+>>>>>>> ae4bcff0aa80d991d7d0fd374b31a0c584ca7e3b
         if (!$crop_revenue) {
             return response()->json(['message' => 'No records found'], 404);
         }
 
+<<<<<<< HEAD
         $response = [];
         foreach ($crop_production as $crop_name => $records) {
             $total_storage_in_ton = $records->sum('storage_qty') ?? 0;
@@ -347,4 +360,23 @@ class MarketOverview extends Controller
             'data' => $report,
         ]);
     }
+=======
+        $total_storage_in_ton = $crop_production->sum('storage_qty');
+
+        $total_storage_in_kg = $total_storage_in_ton * 1000;
+
+        $total_sale = $crop_revenue->sum('cash_sale_price') + $crop_revenue->sum('credit_sale_price');
+
+        $average_market_price = $total_sale != 0 ? $total_storage_in_kg / $total_sale : 0;
+
+        return response()->json([
+            'message' => 'success',
+            'data' => [
+                'average_market_price' => number_format($average_market_price, 2),
+                'total_storage_in_kg' => $total_storage_in_kg,
+            ],
+        ]);
+    }
+
+>>>>>>> ae4bcff0aa80d991d7d0fd374b31a0c584ca7e3b
 }

@@ -5,12 +5,18 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Organization;
 use App\Models\User;
+<<<<<<< HEAD
 use App\Mail\User_register;
+=======
+>>>>>>> ae4bcff0aa80d991d7d0fd374b31a0c584ca7e3b
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+<<<<<<< HEAD
 use Illuminate\Support\Facades\Mail;
+=======
+>>>>>>> ae4bcff0aa80d991d7d0fd374b31a0c584ca7e3b
 use Illuminate\Support\Facades\Validator;
 
 class UserController extends Controller
@@ -30,7 +36,11 @@ class UserController extends Controller
         // Roll back of anything went wrong in catch section
         try {
 
+<<<<<<< HEAD
          $validator = Validator::make($request->all(), [
+=======
+            $validator = Validator::make($request->all(), [
+>>>>>>> ae4bcff0aa80d991d7d0fd374b31a0c584ca7e3b
                 'name' => 'required',
                 'sur_name' => 'required',
                 'email' => 'required|email|unique:users',
@@ -38,6 +48,14 @@ class UserController extends Controller
                 'phone' => 'required',
                 'password' => 'required|min:6',
                 'stock_type' => 'required',
+<<<<<<< HEAD
+=======
+                'org_name' => 'required',
+                'org_country' => 'required',
+                'org_phone' => 'required',
+                'org_email' => 'required|email|unique:organizations',
+                'org_password' => 'required|min:6',
+>>>>>>> ae4bcff0aa80d991d7d0fd374b31a0c584ca7e3b
                 'service_provider' => 'required',
                 'offtake_partner' => 'required',
                 'input_supplier' => 'required',
@@ -46,6 +64,7 @@ class UserController extends Controller
                 'institude' => 'required',
                 'community' => 'required',
                 'invester' => 'required',
+<<<<<<< HEAD
                 'is_org' => 'required',
             ]);
 
@@ -58,6 +77,10 @@ class UserController extends Controller
                     'org_password' => 'required|min:6',
                 ]);
             }
+=======
+            ]);
+
+>>>>>>> ae4bcff0aa80d991d7d0fd374b31a0c584ca7e3b
             if ($validator->fails()) {
                 return response()->json(['error' => $validator->messages()], 422);
             }
@@ -86,6 +109,14 @@ class UserController extends Controller
 
             $organization = Organization::create([
                 'user_id' => $user->id,
+<<<<<<< HEAD
+=======
+                'org_name' => $request->org_name,
+                'org_country' => $request->org_country,
+                'org_phone' => $request->org_phone,
+                'org_email' => $request->org_email,
+                'org_password' => Hash::make($request->org_password),
+>>>>>>> ae4bcff0aa80d991d7d0fd374b31a0c584ca7e3b
                 'service_provider' => $request->service_provider,
                 'offtake_partner' => $request->offtake_partner,
                 'input_supplier' => $request->input_supplier,
@@ -95,6 +126,7 @@ class UserController extends Controller
                 'community' => $request->community,
                 'invester' => $request->invester,
             ]);
+<<<<<<< HEAD
             if ($request->is_org === true || $request->is_org === "true") {
                 $organization->update([
                     'org_name' => $request->org_name,
@@ -104,6 +136,8 @@ class UserController extends Controller
                     'org_password' => Hash::make($request->org_password),
                 ]);
             }
+=======
+>>>>>>> ae4bcff0aa80d991d7d0fd374b31a0c584ca7e3b
 
             if (!$organization) {
                 throw new \Exception('Organization not created');
@@ -113,7 +147,11 @@ class UserController extends Controller
                 'user_name' => $user->name,
                 'verifictionCode' => $verificationCode,
             ];
+<<<<<<< HEAD
              Mail::to($user->email)->send(new User_register($mailData));
+=======
+            // Mail::to($user->email)->send(new User_register($mailData));
+>>>>>>> ae4bcff0aa80d991d7d0fd374b31a0c584ca7e3b
 
             DB::commit();
             return \response()->json(['success', ['message' => 'User and organization created successfully'],

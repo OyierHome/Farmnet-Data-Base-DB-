@@ -29,35 +29,36 @@ class UserController extends Controller
 
         // Roll back of anything went wrong in catch section
         try {
-
-         $validator = Validator::make($request->all(), [
-                'name' => 'required',
-                'sur_name' => 'required',
+            $organization = null;
+            $commonRules = [
                 'email' => 'required|email|unique:users',
                 'country' => 'required',
                 'phone' => 'required',
                 'password' => 'required|min:6',
-                'stock_type' => 'required',
-                'service_provider' => 'required',
-                'offtake_partner' => 'required',
-                'input_supplier' => 'required',
-                'development_partner' => 'required',
-                'education' => 'required',
-                'institude' => 'required',
-                'community' => 'required',
-                'invester' => 'required',
                 'is_org' => 'required',
-            ]);
+            ];
 
-            if ($request->is_org === true || $request->is_org === "true") {
-                $validator = Validator::make($request->all(), [
+            if ($request->is_org === false || $request->is_org === "false") {
+                $specificRules = [
+                    'name' => 'required',
+                    'sur_name' => 'required',
+                    'stock_type' => 'required',
+                ];
+            } else {
+                $specificRules = [
                     'org_name' => 'required',
-                    'org_country' => 'required',
-                    'org_phone' => 'required',
-                    'org_email' => 'required|email|unique:organizations',
-                    'org_password' => 'required|min:6',
-                ]);
+                    'service_provider' => 'required',
+                    'offtake_partner' => 'required',
+                    'input_supplier' => 'required',
+                    'development_partner' => 'required',
+                    'education' => 'required',
+                    'institude' => 'required',
+                    'community' => 'required',
+                    'invester' => 'required',
+                ];
             }
+
+            $validator = Validator::make($request->all(), array_merge($commonRules, $specificRules));
             if ($validator->fails()) {
                 return response()->json(['error' => $validator->messages()], 422);
             }
@@ -69,58 +70,62 @@ class UserController extends Controller
                 $verificationCode .= mt_rand(1, 9);
             }
 
-            $user = User::create([
-                'name' => $request->name,
-                'sur_name' => $request->sur_name,
+            $userData = [
                 'email' => $request->email,
                 'country' => $request->country,
                 'phone' => $request->phone,
-                'stock_type' => $request->stock_type,
                 'password' => Hash::make($request->password),
                 'verify_code' => $verificationCode,
-            ]);
+            ];
+
+            if ($request->is_org === false || $request->is_org === "false") {
+                $userData['name'] = $request->name;
+                $userData['sur_name'] = $request->sur_name;
+                $userData['stock_type'] = $request->stock_type;
+            } else {
+                $userData['org_name'] = $request->org_name;
+            }
+
+            $user = User::create($userData);
 
             if (!$user) {
                 throw new \Exception('User not created');
             }
-
-            $organization = Organization::create([
-                'user_id' => $user->id,
-                'service_provider' => $request->service_provider,
-                'offtake_partner' => $request->offtake_partner,
-                'input_supplier' => $request->input_supplier,
-                'development_partner' => $request->development_partner,
-                'education' => $request->education,
-                'institude' => $request->institude,
-                'community' => $request->community,
-                'invester' => $request->invester,
-            ]);
             if ($request->is_org === true || $request->is_org === "true") {
-                $organization->update([
-                    'org_name' => $request->org_name,
-                    'org_country' => $request->org_country,
-                    'org_phone' => $request->org_phone,
-                    'org_email' => $request->org_email,
-                    'org_password' => Hash::make($request->org_password),
+                $organization = Organization::create([
+                    'user_id' => $user->id,
+                    'service_provider' => $request->service_provider,
+                    'offtake_partner' => $request->offtake_partner,
+                    'input_supplier' => $request->input_supplier,
+                    'development_partner' => $request->development_partner,
+                    'education' => $request->education,
+                    'institude' => $request->institude,
+                    'community' => $request->community,
+                    'invester' => $request->invester,
                 ]);
+
+                if (!$organization) {
+                    throw new \Exception('Organization not created');
+                }
             }
 
-            if (!$organization) {
-                throw new \Exception('Organization not created');
-            }
 
             $mailData = [
                 'user_name' => $user->name,
                 'verifictionCode' => $verificationCode,
             ];
-             Mail::to($user->email)->send(new User_register($mailData));
+            // Mail::to($user->email)->send(new User_register($mailData));
 
             DB::commit();
-            return \response()->json(['success', ['message' => 'User and organization created successfully'],
+            return \response()->json(
                 [
-                    'user' => $user,
-                    'organization' => $organization,
-                ]],
+                    'success',
+                    ['message' => 'User and organization created successfully'],
+                    [
+                        'user' => $user,
+                        'organization' => $organization ? $organization : null,
+                    ]
+                ],
                 200,
                 []
             );

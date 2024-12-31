@@ -13,13 +13,16 @@ return new class extends Migration
     {
         Schema::create('advertisiments', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
-            $table->string('image');
-            $table->string('variety');
-            $table->string('variety_description');
-            $table->string('specification_description');
+            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
+            $table->enum('crop_type', ['crop', 'livestock'])->default('crop');
+            $table->enum('type', ['product','service'])->default('product');
+            $table->string('problem');
+            $table->string('diagnosis');
+            $table->string('management');
+            $table->string('product_name');
+            $table->string('product_image');
+            $table->string('benefits');
             $table->string('amount');
-            $table->string('status');
             $table->timestamps();
         });
     }

@@ -1,9 +1,10 @@
 <?php
 
+use App\Http\Controllers\Api\AdvertisementController;
 use App\Http\Controllers\Api\CropRecordController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\LivestockController;
-use App\Http\Controllers\Api\MarketOverviewController;
+use App\Http\Controllers\MarketOverview;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -32,11 +33,18 @@ Route::post('/market/production/month', [MarketOverview::class, 'getMarketProduc
 Route::post('/market/revenue/month', [MarketOverview::class, 'getRevenueProductionMonthly']);
 Route::post('/market/overview/home', [MarketOverview::class, 'getRealMarketProduction']);
 Route::post('/market/overview/livestock', [MarketOverview::class, 'getRealMarketProductionLivestock']);
-Route::post('/market/production/lastSixMonth', [MarketOverviewController::class, 'getLastSixMonthProductionReport']);
-Route::post('/market/livestock/lastSixMonth', [MarketOverviewController::class, 'getLastSixMonthLivestockReport']);
+Route::post('/market/production/lastSixMonth', [MarketOverview::class, 'getLastSixMonthProductionReport']);
+Route::post('/market/livestock/lastSixMonth', [MarketOverview::class, 'getLastSixMonthLivestockReport']);
 
 // LiveStock Records routes
 
 Route::post('/livestock/create/production', [LivestockController::class, 'livestock_production_record']);
 Route::post('/livestock/create/revenue', [LivestockController::class, 'livestock_revenue_record']);
 Route::post('/livestock/create/inventory', [LivestockController::class, 'livestock_inventory_record']);
+
+
+// Advertisement Routes
+Route::get('/advertisement/{id}', [AdvertisementController::class, 'index']);
+Route::post('/advertisement/create', [AdvertisementController::class, 'store_add']);
+Route::post('/advertisement/update/{id}', [AdvertisementController::class, 'edit_advertisement']);
+Route::get('/advertisement/show/{id}', [AdvertisementController::class, 'show']);

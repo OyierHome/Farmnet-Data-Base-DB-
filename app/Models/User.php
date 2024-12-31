@@ -21,6 +21,7 @@ class User extends Authenticatable
     protected $fillable = [
         'name',
         'sur_name',
+        'org_name',
         'country',
         'phone',
         'email',
@@ -79,5 +80,9 @@ class User extends Authenticatable
     public function cropInventoryRecords()
     {
         return $this->hasMany(CropInventory::class);
+    }
+    public function advertisements()
+    {
+        return $this->hasMany(Advertisiment::class);
     }
 }

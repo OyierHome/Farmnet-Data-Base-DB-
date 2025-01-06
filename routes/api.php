@@ -3,6 +3,7 @@
 use App\Http\Controllers\AddBookingController;
 use App\Http\Controllers\Api\AdvertisementController;
 use App\Http\Controllers\Api\CropRecordController;
+use App\Http\Controllers\Api\Enterprise\CropController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\LivestockController;
 use App\Http\Controllers\MarketOverview;
@@ -59,3 +60,11 @@ Route::get('/advertisement/show/{id}', [AdvertisementController::class, 'show'])
 Route::post('/advertisement/book/create', [AddBookingController::class, 'store_booking']);
 Route::post('/advertisement/book/index', [AddBookingController::class, 'index']);
 Route::post('/advertisement/book/check', [AddBookingController::class, 'check_aveliable']);
+
+
+// Enterprise Routes
+Route::post('/enterprise/crop/create/production', [CropController::class, 'create_production']);
+Route::post('/enterprise/crop/create/revenue', [CropController::class, 'create_revenue']);
+
+Route::post('/enterprise/livestock/create/production', [\App\Http\Controllers\Api\Enterprise\LivestockController::class, 'create_production']);
+Route::post('/enterprise/livestock/create/revenue', [\App\Http\Controllers\Api\Enterprise\LivestockController::class, 'create_revenue']);

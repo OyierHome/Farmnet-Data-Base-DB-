@@ -22,4 +22,8 @@ class Advertisiment extends Model
     {
         return $this->belongsTo(User::class);
     }
+    public function add_booking()
+    {
+        return $this->hasMany(AddBooking::class);
+    }
 }

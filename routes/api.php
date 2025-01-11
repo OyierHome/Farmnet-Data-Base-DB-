@@ -4,6 +4,7 @@ use App\Http\Controllers\AddBookingController;
 use App\Http\Controllers\Api\AdvertisementController;
 use App\Http\Controllers\Api\CropRecordController;
 use App\Http\Controllers\Api\Enterprise\CropController;
+use App\Http\Controllers\Api\EnterpriseController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\LivestockController;
 use App\Http\Controllers\MarketOverview;
@@ -68,3 +69,12 @@ Route::post('/enterprise/crop/create/revenue', [CropController::class, 'create_r
 
 Route::post('/enterprise/livestock/create/production', [\App\Http\Controllers\Api\Enterprise\LivestockController::class, 'create_production']);
 Route::post('/enterprise/livestock/create/revenue', [\App\Http\Controllers\Api\Enterprise\LivestockController::class, 'create_revenue']);
+
+
+// Enterprise Routes
+Route::post('/enterprise/create/test' , [EnterpriseController::class,'create_testing']);
+Route::post('/enterprise/create/bill' , [EnterpriseController::class,'create_bill']);
+Route::post('/enterprise/create/statement' , [EnterpriseController::class,'create_statement']);
+Route::post('/enterprise/create/food/certificate' , [EnterpriseController::class,'create_food_certificate']);
+Route::post('/enterprise/create/plan' , [EnterpriseController::class,'create_plan']);
+Route::post('/enterprise/create/tak' , [EnterpriseController::class,'create_task']);

@@ -78,3 +78,7 @@ Route::post('/enterprise/create/statement' , [EnterpriseController::class,'creat
 Route::post('/enterprise/create/food/certificate' , [EnterpriseController::class,'create_food_certificate']);
 Route::post('/enterprise/create/plan' , [EnterpriseController::class,'create_plan']);
 Route::post('/enterprise/create/tak' , [EnterpriseController::class,'create_task']);
+
+Route::post('/enterprise/create/fund_insurance' , [EnterpriseController::class,'request_fund_insurance']);
+Route::post('/enterprise/create/review' , [EnterpriseController::class,'Rate_review']);
+Route::post('/enterprise/create/reward' , [EnterpriseController::class,'add_rewards']);

@@ -82,3 +82,11 @@ Route::post('/enterprise/create/tak' , [EnterpriseController::class,'create_task
 Route::post('/enterprise/create/fund_insurance' , [EnterpriseController::class,'request_fund_insurance']);
 Route::post('/enterprise/create/review' , [EnterpriseController::class,'Rate_review']);
 Route::post('/enterprise/create/reward' , [EnterpriseController::class,'add_rewards']);
+
+Route::post('/enterprise/crop/production' , [EnterpriseController::class,'crop_report_production']);
+Route::post('/enterprise/crop/revenue' , [EnterpriseController::class,'crop_report_revenue']);
+Route::post('/enterprise/crop/inventory' , [EnterpriseController::class,'crop_report_inventory']);
+
+Route::post('/enterprise/livestock/production' , [EnterpriseController::class,'livestock_report_production']);
+Route::post('/enterprise/livestock/revenue' , [EnterpriseController::class,'livestock_report_revenue']);
+Route::post('/enterprise/livestock/inventory' , [EnterpriseController::class,'livestock_report_inventory']);

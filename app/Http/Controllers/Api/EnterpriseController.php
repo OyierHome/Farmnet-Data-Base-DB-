@@ -4,9 +4,15 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Bill;
+use App\Models\CropInventory;
+use App\Models\CropProductionRecord;
+use App\Models\CropRevenueRecord;
 use App\Models\EnterpriseStatement;
 use App\Models\FoodCertificate;
 use App\Models\FundInsurance;
+use App\Models\LivestockInventory;
+use App\Models\LivestockProductionRecord;
+use App\Models\LivestockRevenueRecord;
 use App\Models\Plan;
 use App\Models\Rate;
 use App\Models\Reward;
@@ -119,7 +125,8 @@ class EnterpriseController extends Controller
         return response()->json(['success' => true, 'data' => $data], 200);
     }
 
-    public function request_fund_insurance(Request $request){
+    public function request_fund_insurance(Request $request)
+    {
         $validate = Validator::make($request->all(), [
             "user_id" => 'required|exists:users,id',
             'data' => 'required|array',
@@ -132,7 +139,8 @@ class EnterpriseController extends Controller
 
     }
 
-    public function Rate_review(Request $request){
+    public function Rate_review(Request $request)
+    {
         $validate = Validator::make($request->all(), [
             "user_id" => 'required|exists:users,id',
             "rater_id" => 'required|exists:users,id',
@@ -160,10 +168,10 @@ class EnterpriseController extends Controller
             $images = $request->file('images');
             $imageFilenames = [];
             foreach ($images as $image) {
-            $imageFilename = uniqid() . '.' . $image->getClientOriginalExtension();
-            $imageDestination = public_path('RateReview/images');
-            $image->move($imageDestination, $imageFilename);
-            $imageFilenames[] = $imageFilename;
+                $imageFilename = uniqid() . '.' . $image->getClientOriginalExtension();
+                $imageDestination = public_path('RateReview/images');
+                $image->move($imageDestination, $imageFilename);
+                $imageFilenames[] = $imageFilename;
             }
             $data['images'] = $imageFilenames;
         }
@@ -174,7 +182,8 @@ class EnterpriseController extends Controller
         return response()->json(['success' => true, 'data' => $rateReview], 200);
     }
 
-    public function add_rewards(Request $request){
+    public function add_rewards(Request $request)
+    {
         $validate = Validator::make($request->all(), [
             "user_id" => 'required|exists:users,id',
             'points' => 'required|integer',
@@ -190,7 +199,7 @@ class EnterpriseController extends Controller
 
         foreach ($newData as $key => $value) {
             if (array_key_exists($key, $existingDataArray)) {
-            return response()->json(['error' => "The field '{$key}' already exists in the previous data"], 404);
+                return response()->json(['error' => "The field '{$key}' already exists in the previous data"], 404);
             }
         }
 
@@ -203,4 +212,582 @@ class EnterpriseController extends Controller
         );
         return response()->json(['success' => true, 'data' => $data], 200);
     }
+
+    public function crop_report_production(Request $request)
+    {
+        $validate = Validator::make($request->all(), [
+            'user_id' => 'required|exists:users,id',
+            'crop' => 'required',
+            'country' => 'required'
+        ]);
+
+        if ($validate->fails()) {
+            return response()->json(['error' => $validate->errors()], 400);
+        }
+
+
+        $user_record = CropProductionRecord::where('user_id', $request->user_id)
+            ->where('crop_name', $request->crop)
+            ->where('country', $request->country)
+            ->latest()
+            ->first();
+        if (!$user_record) {
+            return response()->json(['error' => 'No record found'], 404);
+        }
+
+        $oneMonthAgo = now()->subMonth();
+        $recentRecords = CropProductionRecord::where('crop_name', $request->crop)
+            ->where('country', $request->country)
+            ->where('created_at', '>=', $oneMonthAgo)
+            ->get();
+
+        $averageData = $recentRecords->reduce(function ($carry, $item) {
+            foreach ($item->toArray() as $key => $value) {
+                if (is_numeric($value)) {
+                    $carry[$key] = ($carry[$key] ?? 0) + (float) $value;
+                }
+            }
+            return $carry;
+        }, []);
+
+        $totalPrice = 0;
+        foreach ($averageData as $key => $value) {
+            if (str_ends_with($key, '_price')) {
+                $totalPrice += $value;
+                unset($averageData[$key]);
+            }
+        }
+        $averageData['total_price'] = $totalPrice;
+
+        $userTotalPrice = 0;
+        foreach ($user_record->toArray() as $key => $value) {
+            if (str_ends_with($key, '_price')) {
+                $userTotalPrice += $value;
+            }
+        }
+        $user_record->total_price = $userTotalPrice;
+
+
+
+
+        foreach ($averageData as $key => $value) {
+            $averageData[$key] = $value / $recentRecords->count();
+        }
+        $warnings = [];
+
+        foreach ($averageData as $key => $averageValue) {
+            if (isset($user_record->$key) && is_numeric($user_record->$key)) {
+                $userValue = (float) $user_record->$key;
+                $tenPercent = $averageValue * 0.1;
+
+                if ($userValue < $averageValue - $tenPercent || $userValue > $averageValue + $tenPercent) {
+                    $warnings[] = $key;
+                }
+            }
+        }
+
+        if (!empty($warnings)) {
+            return response()->json([
+                'warning' => $warnings,
+                'average_data' => $averageData,
+                'user_data' => $user_record,
+                'price' => [
+                    'total' => $totalPrice,
+                    'user' => $userTotalPrice
+                ]
+            ], 200);
+        }
+
+        return response()->json([
+            'success' => true,
+            'average_data' => $averageData,
+            "user_data" => $user_record,
+            'price' => [
+                'total' => $totalPrice,
+                'user' => $userTotalPrice
+            ]
+        ], 200);
+
+    }
+    public function crop_report_revenue(Request $request)
+    {
+        $validate = Validator::make($request->all(), [
+            'user_id' => 'required|exists:users,id',
+            'crop' => 'required',
+            'country' => 'required'
+        ]);
+
+        if ($validate->fails()) {
+            return response()->json(['error' => $validate->errors()], 400);
+        }
+
+
+        $user_record = CropRevenueRecord::where('user_id', $request->user_id)
+            ->where('crop_name', $request->crop)
+            ->where('country', $request->country)
+            ->latest()
+            ->first();
+        if (!$user_record) {
+            return response()->json(['error' => 'No record found'], 404);
+        }
+
+        $oneMonthAgo = now()->subMonth();
+        $recentRecords = CropRevenueRecord::where('crop_name', $request->crop)
+            ->where('country', $request->country)
+            ->where('created_at', '>=', $oneMonthAgo)
+            ->get();
+
+        $averageData = $recentRecords->reduce(function ($carry, $item) {
+            foreach ($item->toArray() as $key => $value) {
+                if (is_numeric($value)) {
+                    $carry[$key] = ($carry[$key] ?? 0) + (float) $value;
+                }
+            }
+            return $carry;
+        }, []);
+
+        $totalPrice = 0;
+        foreach ($averageData as $key => $value) {
+            if (str_ends_with($key, '_price')) {
+                $totalPrice += $value;
+                unset($averageData[$key]);
+            }
+        }
+        $averageData['total_price'] = $totalPrice;
+
+        $userTotalPrice = 0;
+        foreach ($user_record->toArray() as $key => $value) {
+            if (str_ends_with($key, '_price')) {
+                $userTotalPrice += $value;
+            }
+        }
+        $user_record->total_price = $userTotalPrice;
+
+
+
+
+        foreach ($averageData as $key => $value) {
+            $averageData[$key] = $value / $recentRecords->count();
+        }
+        $warnings = [];
+
+        foreach ($averageData as $key => $averageValue) {
+            if (isset($user_record->$key) && is_numeric($user_record->$key)) {
+                $userValue = (float) $user_record->$key;
+                $tenPercent = $averageValue * 0.1;
+
+                if ($userValue < $averageValue - $tenPercent || $userValue > $averageValue + $tenPercent) {
+                    $warnings[] = $key;
+                }
+            }
+        }
+
+        if (!empty($warnings)) {
+            return response()->json([
+                'warning' => $warnings,
+                'average_data' => $averageData,
+                'user_data' => $user_record,
+                'price' => [
+                    'total' => $totalPrice,
+                    'user' => $userTotalPrice
+                ]
+            ], 200);
+        }
+
+        return response()->json([
+            'success' => true,
+            'average_data' => $averageData,
+            "user_data" => $user_record,
+            'price' => [
+                'total' => $totalPrice,
+                'user' => $userTotalPrice
+            ]
+        ], 200);
+
+    }
+    public function crop_report_inventory(Request $request)
+    {
+        $validate = Validator::make($request->all(), [
+            'user_id' => 'required|exists:users,id',
+            'crop' => 'required',
+            'country' => 'required'
+        ]);
+
+        if ($validate->fails()) {
+            return response()->json(['error' => $validate->errors()], 400);
+        }
+
+
+        $user_record = CropInventory::where('user_id', $request->user_id)
+            ->where('crop_name', $request->crop)
+            ->where('country', $request->country)
+            ->latest()
+            ->first();
+        if (!$user_record) {
+            return response()->json(['error' => 'No record found'], 404);
+        }
+
+        $oneMonthAgo = now()->subMonth();
+        $recentRecords = CropInventory::where('crop_name', $request->crop)
+            ->where('country', $request->country)
+            ->where('created_at', '>=', $oneMonthAgo)
+            ->get();
+
+        $averageData = $recentRecords->reduce(function ($carry, $item) {
+            foreach ($item->toArray() as $key => $value) {
+                if (is_numeric($value)) {
+                    $carry[$key] = ($carry[$key] ?? 0) + (float) $value;
+                }
+            }
+            return $carry;
+        }, []);
+
+        $totalPrice = 0;
+        foreach ($averageData as $key => $value) {
+            if (str_ends_with($key, '_price')) {
+                $totalPrice += $value;
+                unset($averageData[$key]);
+            }
+        }
+        $averageData['total_price'] = $totalPrice;
+
+        $userTotalPrice = 0;
+        foreach ($user_record->toArray() as $key => $value) {
+            if (str_ends_with($key, '_price')) {
+                $userTotalPrice += $value;
+            }
+        }
+        $user_record->total_price = $userTotalPrice;
+
+
+
+
+        foreach ($averageData as $key => $value) {
+            $averageData[$key] = $value / $recentRecords->count();
+        }
+        $warnings = [];
+
+        foreach ($averageData as $key => $averageValue) {
+            if (isset($user_record->$key) && is_numeric($user_record->$key)) {
+                $userValue = (float) $user_record->$key;
+                $tenPercent = $averageValue * 0.1;
+
+                if ($userValue < $averageValue - $tenPercent || $userValue > $averageValue + $tenPercent) {
+                    $warnings[] = $key;
+                }
+            }
+        }
+
+        if (!empty($warnings)) {
+            return response()->json([
+                'warning' => $warnings,
+                'average_data' => $averageData,
+                'user_data' => $user_record,
+                'price' => [
+                    'total' => $totalPrice,
+                    'user' => $userTotalPrice
+                ]
+            ], 200);
+        }
+
+        return response()->json([
+            'success' => true,
+            'average_data' => $averageData,
+            "user_data" => $user_record,
+            'price' => [
+                'total' => $totalPrice,
+                'user' => $userTotalPrice
+            ]
+        ], 200);
+
+    }
+    public function livestock_report_production(Request $request)
+    {
+        $validate = Validator::make($request->all(), [
+            'user_id' => 'required|exists:users,id',
+            'crop' => 'required',
+            'country' => 'required'
+        ]);
+
+        if ($validate->fails()) {
+            return response()->json(['error' => $validate->errors()], 400);
+        }
+
+
+        $user_record = LivestockProductionRecord::where('user_id', $request->user_id)
+            ->where('crop_name', $request->crop)
+            ->where('country', $request->country)
+            ->latest()
+            ->first();
+        if (!$user_record) {
+            return response()->json(['error' => 'No record found'], 404);
+        }
+
+        $oneMonthAgo = now()->subMonth();
+        $recentRecords = LivestockProductionRecord::where('crop_name', $request->crop)
+            ->where('country', $request->country)
+            ->where('created_at', '>=', $oneMonthAgo)
+            ->get();
+
+        $averageData = $recentRecords->reduce(function ($carry, $item) {
+            foreach ($item->toArray() as $key => $value) {
+                if (is_numeric($value)) {
+                    $carry[$key] = ($carry[$key] ?? 0) + (float) $value;
+                }
+            }
+            return $carry;
+        }, []);
+
+        $totalPrice = 0;
+        foreach ($averageData as $key => $value) {
+            if (str_ends_with($key, '_price')) {
+                $totalPrice += $value;
+                unset($averageData[$key]);
+            }
+        }
+        $averageData['total_price'] = $totalPrice;
+
+        $userTotalPrice = 0;
+        foreach ($user_record->toArray() as $key => $value) {
+            if (str_ends_with($key, '_price')) {
+                $userTotalPrice += $value;
+            }
+        }
+        $user_record->total_price = $userTotalPrice;
+
+
+
+
+        foreach ($averageData as $key => $value) {
+            $averageData[$key] = $value / $recentRecords->count();
+        }
+        $warnings = [];
+
+        foreach ($averageData as $key => $averageValue) {
+            if (isset($user_record->$key) && is_numeric($user_record->$key)) {
+                $userValue = (float) $user_record->$key;
+                $tenPercent = $averageValue * 0.1;
+
+                if ($userValue < $averageValue - $tenPercent || $userValue > $averageValue + $tenPercent) {
+                    $warnings[] = $key;
+                }
+            }
+        }
+
+        if (!empty($warnings)) {
+            return response()->json([
+                'warning' => $warnings,
+                'average_data' => $averageData,
+                'user_data' => $user_record,
+                'price' => [
+                    'total' => $totalPrice,
+                    'user' => $userTotalPrice
+                ]
+            ], 200);
+        }
+
+        return response()->json([
+            'success' => true,
+            'average_data' => $averageData,
+            "user_data" => $user_record,
+            'price' => [
+                'total' => $totalPrice,
+                'user' => $userTotalPrice
+            ]
+        ], 200);
+
+    }
+    public function livestock_report_revenue(Request $request)
+    {
+        $validate = Validator::make($request->all(), [
+            'user_id' => 'required|exists:users,id',
+            'crop' => 'required',
+            'country' => 'required'
+        ]);
+
+        if ($validate->fails()) {
+            return response()->json(['error' => $validate->errors()], 400);
+        }
+
+
+        $user_record = LivestockRevenueRecord::where('user_id', $request->user_id)
+            ->where('crop_name', $request->crop)
+            ->where('country', $request->country)
+            ->latest()
+            ->first();
+        if (!$user_record) {
+            return response()->json(['error' => 'No record found'], 404);
+        }
+
+        $oneMonthAgo = now()->subMonth();
+        $recentRecords = LivestockRevenueRecord::where('crop_name', $request->crop)
+            ->where('country', $request->country)
+            ->where('created_at', '>=', $oneMonthAgo)
+            ->get();
+
+        $averageData = $recentRecords->reduce(function ($carry, $item) {
+            foreach ($item->toArray() as $key => $value) {
+                if (is_numeric($value)) {
+                    $carry[$key] = ($carry[$key] ?? 0) + (float) $value;
+                }
+            }
+            return $carry;
+        }, []);
+
+        $totalPrice = 0;
+        foreach ($averageData as $key => $value) {
+            if (str_ends_with($key, '_price')) {
+                $totalPrice += $value;
+                unset($averageData[$key]);
+            }
+        }
+        $averageData['total_price'] = $totalPrice;
+
+        $userTotalPrice = 0;
+        foreach ($user_record->toArray() as $key => $value) {
+            if (str_ends_with($key, '_price')) {
+                $userTotalPrice += $value;
+            }
+        }
+        $user_record->total_price = $userTotalPrice;
+
+
+
+
+        foreach ($averageData as $key => $value) {
+            $averageData[$key] = $value / $recentRecords->count();
+        }
+        $warnings = [];
+
+        foreach ($averageData as $key => $averageValue) {
+            if (isset($user_record->$key) && is_numeric($user_record->$key)) {
+                $userValue = (float) $user_record->$key;
+                $tenPercent = $averageValue * 0.1;
+
+                if ($userValue < $averageValue - $tenPercent || $userValue > $averageValue + $tenPercent) {
+                    $warnings[] = $key;
+                }
+            }
+        }
+
+        if (!empty($warnings)) {
+            return response()->json([
+                'warning' => $warnings,
+                'average_data' => $averageData,
+                'user_data' => $user_record,
+                'price' => [
+                    'total' => $totalPrice,
+                    'user' => $userTotalPrice
+                ]
+            ], 200);
+        }
+
+        return response()->json([
+            'success' => true,
+            'average_data' => $averageData,
+            "user_data" => $user_record,
+            'price' => [
+                'total' => $totalPrice,
+                'user' => $userTotalPrice
+            ]
+        ], 200);
+
+    }
+    public function livestock_report_inventory(Request $request)
+    {
+        $validate = Validator::make($request->all(), [
+            'user_id' => 'required|exists:users,id',
+            'crop' => 'required',
+            'country' => 'required'
+        ]);
+
+        if ($validate->fails()) {
+            return response()->json(['error' => $validate->errors()], 400);
+        }
+
+
+        $user_record = LivestockInventory::where('user_id', $request->user_id)
+            ->where('crop_name', $request->crop)
+            ->where('country', $request->country)
+            ->latest()
+            ->first();
+        if (!$user_record) {
+            return response()->json(['error' => 'No record found'], 404);
+        }
+
+        $oneMonthAgo = now()->subMonth();
+        $recentRecords = LivestockInventory::where('crop_name', $request->crop)
+            ->where('country', $request->country)
+            ->where('created_at', '>=', $oneMonthAgo)
+            ->get();
+
+        $averageData = $recentRecords->reduce(function ($carry, $item) {
+            foreach ($item->toArray() as $key => $value) {
+                if (is_numeric($value)) {
+                    $carry[$key] = ($carry[$key] ?? 0) + (float) $value;
+                }
+            }
+            return $carry;
+        }, []);
+
+        $totalPrice = 0;
+        foreach ($averageData as $key => $value) {
+            if (str_ends_with($key, '_price')) {
+                $totalPrice += $value;
+                unset($averageData[$key]);
+            }
+        }
+        $averageData['total_price'] = $totalPrice;
+
+        $userTotalPrice = 0;
+        foreach ($user_record->toArray() as $key => $value) {
+            if (str_ends_with($key, '_price')) {
+                $userTotalPrice += $value;
+            }
+        }
+        $user_record->total_price = $userTotalPrice;
+
+
+
+
+        foreach ($averageData as $key => $value) {
+            $averageData[$key] = $value / $recentRecords->count();
+        }
+        $warnings = [];
+
+        foreach ($averageData as $key => $averageValue) {
+            if (isset($user_record->$key) && is_numeric($user_record->$key)) {
+                $userValue = (float) $user_record->$key;
+                $tenPercent = $averageValue * 0.1;
+
+                if ($userValue < $averageValue - $tenPercent || $userValue > $averageValue + $tenPercent) {
+                    $warnings[] = $key;
+                }
+            }
+        }
+
+        if (!empty($warnings)) {
+            return response()->json([
+                'warning' => $warnings,
+                'average_data' => $averageData,
+                'user_data' => $user_record,
+                'price' => [
+                    'total' => $totalPrice,
+                    'user' => $userTotalPrice
+                ]
+            ], 200);
+        }
+
+        return response()->json([
+            'success' => true,
+            'average_data' => $averageData,
+            "user_data" => $user_record,
+            'price' => [
+                'total' => $totalPrice,
+                'user' => $userTotalPrice
+            ]
+        ], 200);
+
+    }
+
 }

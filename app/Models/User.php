@@ -20,6 +20,7 @@ class User extends Authenticatable
      */
     protected $fillable = [
         'name',
+        'unique_id',
         'sur_name',
         'org_name',
         'country',
@@ -88,5 +89,13 @@ class User extends Authenticatable
     public function add_booking()
     {
         return $this->hasMany(AddBooking::class);
+    }
+    public function profile()
+    {
+        return $this->hasOne(Profile::class);
+    }
+    public function certificates()
+    {
+        return $this->hasMany(Certificate::class);
     }
 }

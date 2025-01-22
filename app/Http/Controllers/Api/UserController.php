@@ -7,6 +7,7 @@ use App\Mail\forget_password;
 use App\Models\Organization;
 use App\Models\User;
 use App\Mail\User_register;
+use App\Services\GenerateUniqueIdService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -16,7 +17,7 @@ use Illuminate\Support\Facades\Validator;
 
 class UserController extends Controller
 {
-    public function store_user(Request $request)
+    public function store_user(Request $request , GenerateUniqueIdService $generateUniqueIdService)
     {
         // wrap all code in try-catch
         // Validate all inputs
@@ -59,6 +60,9 @@ class UserController extends Controller
                 ];
             }
 
+
+
+
             $validator = Validator::make($request->all(), array_merge($commonRules, $specificRules));
             if ($validator->fails()) {
                 return response()->json(['error' => $validator->messages()], 422);
@@ -66,12 +70,18 @@ class UserController extends Controller
 
             DB::beginTransaction();
 
+
+            // generate Unique ID
+            $uniqueId =  $generateUniqueIdService->generateUserId($request->country, $request->service_provider ? $request->service_provider : 'Individual');
+
+
             $verificationCode = '';
             for ($i = 0; $i < 4; $i++) {
                 $verificationCode .= mt_rand(1, 9);
             }
 
             $userData = [
+                'unique_id' => $uniqueId,
                 'email' => $request->email,
                 'country' => $request->country,
                 'phone' => $request->phone,

@@ -19,6 +19,7 @@ return new class extends Migration
             $table->string('country');
             $table->string('phone');
             $table->string('email')->unique();
+            $table->string('unique_id')->unique();
             $table->string('password');
             $table->string('stock_type')->nullable();
             $table->string('verify_code')->nullable();

@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\CropRecordController;
 use App\Http\Controllers\Api\Enterprise\CropController;
 use App\Http\Controllers\Api\EnterpriseController;
 use App\Http\Controllers\Api\ProfileController;
+use App\Http\Controllers\Api\SettingController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\LivestockController;
 use App\Http\Controllers\MarketOverview;
@@ -95,3 +96,8 @@ Route::post('/enterprise/livestock/inventory' , [EnterpriseController::class,'li
 // Profile routes
 Route::post('/profile/create', [ProfileController::class, 'create_or_update']);
 Route::post('/profile/certificate', [ProfileController::class, 'add_certificate']);
+
+
+//Settings Routes
+Route::post('settings/update/uses',[SettingController::class,'upDateUsers']);
+Route::post('settings/create/update',[SettingController::class,'create_updateSetting']);

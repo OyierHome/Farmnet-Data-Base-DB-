@@ -21,9 +21,9 @@ class ProfileController extends Controller
             'cover_image' => 'nullable|file|mimes:jpeg,png,jpg,gif,svg|max:2048',
             'logo' => 'nullable|file|mimes:jpeg,png,jpg,gif,svg|max:2048',
             'location' => 'nullable|string',
-            'crop' => 'nullable|json',
-            'liveStock' => 'nullable|json',
-            'data' => 'nullable|json',
+            'crop' => 'nullable|array',
+            'liveStock' => 'nullable|array',
+            'data' => 'nullable|array',
         ]);
         if ($validate->fails()) {
             return response()->json(['error' => $validate->errors()], 400);
@@ -132,3 +132,6 @@ class ProfileController extends Controller
         }
     }
 }
+
+
+

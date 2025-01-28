@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Bill;
 use App\Models\CropProductionRecord;
 use App\Models\CropRevenueRecord;
 use App\Models\LivestockProductionRecord;
@@ -73,7 +74,31 @@ class MarketOverview extends Controller
         $response = [];
         foreach ($records as $key => $record) {
             $response[$key] = $record->sum([
-                'production', 'ploughing_qty', 'ploughing_price', 'seed_qty', 'seed_price', 'fertilizer_qty', 'fertilizer_price', 'herbicides_qty', 'herbicides_price', 'pesticide_qty', 'pesticide_price', 'labour_qty', 'labour_price', 'packaing_qty', 'packaing_price', 'storage_qty', 'storage_price', 'transport_qty', 'transport_price', 'variety_qty', 'variety_price', 'equipment_qty', 'equipment_price', 'land_size_qty', 'land_size_price',
+                'production',
+                'ploughing_qty',
+                'ploughing_price',
+                'seed_qty',
+                'seed_price',
+                'fertilizer_qty',
+                'fertilizer_price',
+                'herbicides_qty',
+                'herbicides_price',
+                'pesticide_qty',
+                'pesticide_price',
+                'labour_qty',
+                'labour_price',
+                'packaing_qty',
+                'packaing_price',
+                'storage_qty',
+                'storage_price',
+                'transport_qty',
+                'transport_price',
+                'variety_qty',
+                'variety_price',
+                'equipment_qty',
+                'equipment_price',
+                'land_size_qty',
+                'land_size_price',
             ]);
         }
         return response()->json(['message' => 'success', 'data' => $response]);
@@ -100,70 +125,34 @@ class MarketOverview extends Controller
         $response = [];
         foreach ($records as $key => $record) {
             $response[$key] = $record->sum([
-                'cash_sale_qty', 'credit_sale_qty', 'services_qty', 'advertisiment_qty',
-                'donation_qty', 'farm_visit_qty', 'royality_qty', 'incentives_qty',
-                'bonuses_qty', 'research_qty', 'traning_qty', 'land_size_qty',
-                'cash_sale_price', 'credit_sale_price', 'services_price', 'advertisiment_price',
-                'donation_price', 'farm_visit_price', 'royality_price', 'incentives_price',
-                'bonuses_price', 'research_price', 'traning_price', 'land_size_price',
+                'cash_sale_qty',
+                'credit_sale_qty',
+                'services_qty',
+                'advertisiment_qty',
+                'donation_qty',
+                'farm_visit_qty',
+                'royality_qty',
+                'incentives_qty',
+                'bonuses_qty',
+                'research_qty',
+                'traning_qty',
+                'land_size_qty',
+                'cash_sale_price',
+                'credit_sale_price',
+                'services_price',
+                'advertisiment_price',
+                'donation_price',
+                'farm_visit_price',
+                'royality_price',
+                'incentives_price',
+                'bonuses_price',
+                'research_price',
+                'traning_price',
+                'land_size_price',
             ]);
         }
         return response()->json(['message' => 'success', 'data' => $response]);
 
-    }
-
-    public function getRealMarketProduction(Request $request)
-    {
-        $validate = Validator::make($request->all(), [
-            'country' => 'required',
-        ]);
-        if ($validate->fails()) {
-            return response()->json(['error', $validate->errors()], 422);
-        }
-        $crop_production = CropProductionRecord::where('country', $request->country)
-            ->whereBetween('created_at', [now()->subDays(30), now()])
-            ->get()
-            ->groupBy('crop_name');
-        if (!$crop_production) {
-            return response()->json(['message' => 'No records found'], 404);
-        }
-        $crop_revenue = CropRevenueRecord::where('country', $request->country)
-            ->whereBetween('created_at', [now()->subDays(30), now()])
-            ->get()
-            ->groupBy('crop_name');
-        if (!$crop_revenue) {
-            return response()->json(['message' => 'No records found'], 404);
-        }
-
-        $response = [];
-        foreach ($crop_production as $crop_name => $records) {
-            $total_storage_in_ton = $records->sum('storage_qty') ?? 0;
-
-            $total_storage_in_kg = $total_storage_in_ton * 1000;
-
-            $total_sale = isset($crop_revenue[$crop_name])
-            ? ($crop_revenue[$crop_name]->sum('cash_sale_qty') ?? 0) +
-            ($crop_revenue[$crop_name]->sum('credit_sale_qty') ?? 0)
-            : 0;
-            $total_revenue = isset($crop_revenue[$crop_name])
-            ? ($crop_revenue[$crop_name]->sum('cash_sale_price') ?? 0) +
-            ($crop_revenue[$crop_name]->sum('credit_sale_price') ?? 0)
-            : 0;
-
-            $average_market_price = $total_sale > 0 ? $total_revenue / $total_sale : 0;
-
-            $response[] = [
-                'crop_name' => $crop_name,
-                'average_market_price' => number_format($average_market_price, 2),
-                'total_storage_in_ton' => number_format($total_storage_in_ton, 2),
-                'total_storage_in_kg' => number_format($total_storage_in_kg, 2),
-            ];
-        }
-
-        return response()->json([
-            'message' => 'success',
-            'data' => $response,
-        ]);
     }
 
     public function getRealMarketProductionLivestock(Request $request)
@@ -196,13 +185,13 @@ class MarketOverview extends Controller
             $total_storage_in_kg = $total_storage_in_ton * 1000;
 
             $total_sale = isset($crop_revenue[$crop_name])
-            ? ($crop_revenue[$crop_name]->sum('cash_sale_qty') ?? 0) +
-            ($crop_revenue[$crop_name]->sum('credit_sale_qty') ?? 0)
-            : 0;
+                ? ($crop_revenue[$crop_name]->sum('cash_sale_qty') ?? 0) +
+                ($crop_revenue[$crop_name]->sum('credit_sale_qty') ?? 0)
+                : 0;
             $total_revenue = isset($crop_revenue[$crop_name])
-            ? ($crop_revenue[$crop_name]->sum('cash_sale_price') ?? 0) +
-            ($crop_revenue[$crop_name]->sum('credit_sale_price') ?? 0)
-            : 0;
+                ? ($crop_revenue[$crop_name]->sum('cash_sale_price') ?? 0) +
+                ($crop_revenue[$crop_name]->sum('credit_sale_price') ?? 0)
+                : 0;
 
             $average_market_price = $total_sale > 0 ? $total_revenue / $total_sale : 0;
 
@@ -255,11 +244,11 @@ class MarketOverview extends Controller
             $total_farmer = $productionRecords->sum('labour_qty') ?? 0;
 
             $total_cost = ($productionRecords->sum('ploughing_price') ?? 0) + ($productionRecords->sum('seed_price') ?? 0) +
-            ($productionRecords->sum('fertilizer_price') ?? 0) + ($productionRecords->sum('herbicides_price') ?? 0) +
-            ($productionRecords->sum('pesticide_price') ?? 0) + ($productionRecords->sum('labour_price') ?? 0) +
-            ($productionRecords->sum('packaing_price') ?? 0) + ($productionRecords->sum('transport_price') ?? 0) +
-            ($productionRecords->sum('variety_price') ?? 0) + ($productionRecords->sum('equipment_price') ?? 0) +
-            ($productionRecords->sum('land_size_price') ?? 0);
+                ($productionRecords->sum('fertilizer_price') ?? 0) + ($productionRecords->sum('herbicides_price') ?? 0) +
+                ($productionRecords->sum('pesticide_price') ?? 0) + ($productionRecords->sum('labour_price') ?? 0) +
+                ($productionRecords->sum('packaing_price') ?? 0) + ($productionRecords->sum('transport_price') ?? 0) +
+                ($productionRecords->sum('variety_price') ?? 0) + ($productionRecords->sum('equipment_price') ?? 0) +
+                ($productionRecords->sum('land_size_price') ?? 0);
 
             $price_per_kr = $total_storage_in_kg != 0 ? $total_sale / $total_sale_qty : 0;
 
@@ -318,13 +307,13 @@ class MarketOverview extends Controller
             $total_farmer = $productionRecords->sum('labour_qty') ?? 0;
 
             $total_cost = ($productionRecords->sum('equipment_price') ?? 0) + ($productionRecords->sum('seed_price') ?? 0) +
-            ($productionRecords->sum('feeds_price') ?? 0) + ($productionRecords->sum('suppliements_price') ?? 0) +
-            ($productionRecords->sum('pesticide_price') ?? 0) + ($productionRecords->sum('labour_price') ?? 0) +
-            ($productionRecords->sum('packaing_price') ?? 0) + ($productionRecords->sum('storage_price') ?? 0) +
-            ($productionRecords->sum('transport_price') ?? 0) + ($productionRecords->sum('spray_price') ?? 0) +
-            ($productionRecords->sum('variety_price') ?? 0) + ($productionRecords->sum('tool_price') ?? 0) +
-            ($productionRecords->sum('model_price') ?? 0) + ($productionRecords->sum('range_price') ?? 0) +
-            ($productionRecords->sum('land_size_price') ?? 0);
+                ($productionRecords->sum('feeds_price') ?? 0) + ($productionRecords->sum('suppliements_price') ?? 0) +
+                ($productionRecords->sum('pesticide_price') ?? 0) + ($productionRecords->sum('labour_price') ?? 0) +
+                ($productionRecords->sum('packaing_price') ?? 0) + ($productionRecords->sum('storage_price') ?? 0) +
+                ($productionRecords->sum('transport_price') ?? 0) + ($productionRecords->sum('spray_price') ?? 0) +
+                ($productionRecords->sum('variety_price') ?? 0) + ($productionRecords->sum('tool_price') ?? 0) +
+                ($productionRecords->sum('model_price') ?? 0) + ($productionRecords->sum('range_price') ?? 0) +
+                ($productionRecords->sum('land_size_price') ?? 0);
 
             $price_per_kr = $total_storage_in_kg != 0 ? $total_sale / $total_sale_qty : 0;
 
@@ -347,4 +336,98 @@ class MarketOverview extends Controller
             'data' => $report,
         ]);
     }
+
+    public function getRealMarketProduction(Request $request)
+    {
+        $validate = Validator::make($request->all(), [
+            'country' => 'required',
+        ]);
+        if ($validate->fails()) {
+            return response()->json(['error', $validate->errors()], 422);
+        }
+
+
+        $Real_data = Bill::
+            where('country', $request->country)
+            ->where('bill_type', 'invoice')
+            ->whereBetween('created_at', [now()->subDays(30), now()])
+            ->get();
+        $response = [];
+        foreach ($Real_data as $data) {
+            $dataContent = is_string($data->data) ? json_decode($data->data, true) : $data->data;
+            $crops = $dataContent['crops'];
+            foreach ($crops as $crop_name => $crop_data) {
+                $total_price = $crop_data['quantity'] * $crop_data['unit_price'];
+                if (isset($response[$crop_name])) {
+                    $response[$crop_name]['quantity'] += $crop_data['quantity'];
+                    $response[$crop_name]['amount'] += $total_price;
+                } else {
+                    $response[$crop_name] = [
+                        'crop_name' => $crop_name,
+                        'quantity' => $crop_data['quantity'],
+                        'unit_price' => $crop_data['unit_price'],
+                        'amount' => $total_price,
+                    ];
+                }
+            }
+        }
+        foreach ($response as $crop_name => &$crop_data) {
+            $crop_data['average_price'] = $crop_data['quantity'] > 0 ? $crop_data['amount'] / $crop_data['quantity'] : 0;
+            $crop_data['amount_in_kg'] = $crop_data['amount'] * 1000;
+            $crop_data['average_price_per_kg'] = $crop_data['quantity'] > 0 ? $crop_data['amount_in_kg'] / ($crop_data['quantity'] * 1000) : 0;
+        }
+
+        return response()->json([
+            'message' => 'success',
+            'data' => $response,
+        ]);
+
+    }
+    public function getUsersMarketProduction(Request $request)
+    {
+        $validate = Validator::make($request->all(), [
+            'user_id' => 'required',
+        ]);
+        if ($validate->fails()) {
+            return response()->json(['error', $validate->errors()], 422);
+        }
+
+
+        $Real_data = Bill::
+            where('user_id', $request->user_id)
+            ->where('bill_type', 'invoice')
+            ->whereBetween('created_at', [now()->subDays(30), now()])
+            ->get();
+        $response = [];
+        foreach ($Real_data as $data) {
+            $dataContent = is_string($data->data) ? json_decode($data->data, true) : $data->data;
+            $crops = $dataContent['crops'];
+            foreach ($crops as $crop_name => $crop_data) {
+                $total_price = $crop_data['quantity'] * $crop_data['unit_price'];
+                if (isset($response[$crop_name])) {
+                    $response[$crop_name]['quantity'] += $crop_data['quantity'];
+                    $response[$crop_name]['amount'] += $total_price;
+                } else {
+                    $response[$crop_name] = [
+                        'crop_name' => $crop_name,
+                        'quantity' => $crop_data['quantity'],
+                        'unit_price' => $crop_data['unit_price'],
+                        'amount' => $total_price,
+                    ];
+                }
+            }
+        }
+        foreach ($response as $crop_name => &$crop_data) {
+            $crop_data['average_price'] = $crop_data['quantity'] > 0 ? $crop_data['amount'] / $crop_data['quantity'] : 0;
+            $crop_data['amount_in_kg'] = $crop_data['amount'] * 1000;
+            $crop_data['average_price_per_kg'] = $crop_data['quantity'] > 0 ? $crop_data['amount_in_kg'] / ($crop_data['quantity'] * 1000) : 0;
+        }
+
+        return response()->json([
+            'message' => 'success',
+            'data' => $response,
+        ]);
+
+    }
+
 }

@@ -22,6 +22,7 @@ Route::post('/user/verify', [UserController::class, 'verifyUser']);
 Route::post('/user/verify/resend', [UserController::class, 'resendVerificationCode']);
 Route::post('/user/forget/password', [UserController::class, 'forgetPassword']);
 Route::post('/user/forget/password/verify', [UserController::class, 'forgetPasswordVerify']);
+Route::post('/user/get/uniqueID', [UserController::class, 'getUserByUniqueID']);
 
 
 // Crop Record Routes
@@ -40,10 +41,11 @@ Route::get('/crop/revenue', [CropRecordController::class, 'get_crop_revenue_reco
 //Market record
 Route::post('/market/production/month', [MarketOverview::class, 'getMarketProductionMonthly']);
 Route::post('/market/revenue/month', [MarketOverview::class, 'getRevenueProductionMonthly']);
-Route::post('/market/overview/home', [MarketOverview::class, 'getRealMarketProduction']);
 Route::post('/market/overview/livestock', [MarketOverview::class, 'getRealMarketProductionLivestock']);
 Route::post('/market/production/lastSixMonth', [MarketOverview::class, 'getLastSixMonthProductionReport']);
 Route::post('/market/livestock/lastSixMonth', [MarketOverview::class, 'getLastSixMonthLivestockReport']);
+Route::post('/market/overview/home', [MarketOverview::class, 'getRealMarketProduction']);
+Route::post('/market/overview/user', [MarketOverview::class, 'getUsersMarketProduction']);
 
 // LiveStock Records routes
 
@@ -92,6 +94,10 @@ Route::post('/enterprise/crop/inventory' , [EnterpriseController::class,'crop_re
 Route::post('/enterprise/livestock/production' , [EnterpriseController::class,'livestock_report_production']);
 Route::post('/enterprise/livestock/revenue' , [EnterpriseController::class,'livestock_report_revenue']);
 Route::post('/enterprise/livestock/inventory' , [EnterpriseController::class,'livestock_report_inventory']);
+
+//Crop Inventory
+
+Route::post('/enterprise/crop/inventory/get' , [EnterpriseController::class,'getInventory']);
 
 // Profile routes
 Route::post('/profile/create', [ProfileController::class, 'create_or_update']);

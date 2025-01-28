@@ -16,17 +16,21 @@ class HandleImageService
         $newName = uniqid() . '.' . $extension;
         $image->move($path, $newName);
 
-        return $path . '/' . $newName;
+    $profileUrl = url("{$path}/{$newName}");
+    return $profileUrl;
     }
     public function deleteImage($image)
     {
         if (!$image) {
-            throw new \InvalidArgumentException('Image is required.');
+            throw new \InvalidArgumentException('Image URL is required.');
         }
 
         // Delete Image
-        if (file_exists(public_path($image))) {
-            unlink(public_path($image));
+        $imagePath = parse_url($image, PHP_URL_PATH);
+        $fullImagePath = public_path($imagePath);
+
+        if (file_exists($fullImagePath)) {
+            unlink($fullImagePath);
         }
     }
 

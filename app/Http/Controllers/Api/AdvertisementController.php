@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Advertisiment;
 use App\Models\User;
+use App\Services\HandleImageService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
@@ -23,13 +24,10 @@ class AdvertisementController extends Controller
             return response()->json(['error' => 'User not found'], 404);
         }
 
-        $advertisements = $user->advertisements->map(function ($advertisement) {
-            $advertisement->product_image = url('advertisement/' . $advertisement->product_image);
-            return $advertisement;
-        });
+        $advertisements = $user->advertisements()->get();
         return response()->json(['advertisements' => $advertisements], 200);
     }
-    public function store_add(Request $request)
+    public function store_add(Request $request , HandleImageService $handleImageService)
     {
         $validate = Validator::make($request->all(), [
             'user_id' => 'required|exists:users,id',
@@ -70,9 +68,7 @@ class AdvertisementController extends Controller
 
 
         if ($request->hasFile('product_image')) {
-            $image = $request->file('product_image');
-            $filename = uniqid() . '.' . $image->getClientOriginalExtension();
-            $image->move(public_path('advertisement'), $filename);
+            $filename = $handleImageService->imageHandle($request->file('product_image'), 'advertisement');
         }
 
 
@@ -153,7 +149,6 @@ class AdvertisementController extends Controller
             return response()->json(['error' => 'Advertisement not found'], 404);
         }
 
-        $advertisement->product_image = url('advertisement/' . $advertisement->product_image);
 
         return response()->json(['advertisement' => $advertisement], 200);
     }

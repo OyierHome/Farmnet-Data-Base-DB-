@@ -18,6 +18,8 @@ use App\Models\Rate;
 use App\Models\Reward;
 use App\Models\Task;
 use App\Models\Testing;
+use App\Models\User;
+use App\Services\HandleImageService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
@@ -46,9 +48,15 @@ class EnterpriseController extends Controller
             'bill_type' => 'required',
             'data' => 'required|array',
         ]);
+
         if ($validate->fails()) {
             return response()->json(['error' => $validate->errors()], 404);
         }
+        $user = User::find($request->user_id);
+        if (!$user) {
+            return response()->json(['error' => 'User not found'], 404);
+        }
+        $request->merge(['country' => $user->country]);
         $data = new Bill($request->all());
         $data->save();
 
@@ -139,13 +147,13 @@ class EnterpriseController extends Controller
 
     }
 
-    public function Rate_review(Request $request)
+    public function Rate_review(Request $request, HandleImageService $imageService)
     {
         $validate = Validator::make($request->all(), [
             "user_id" => 'required|exists:users,id',
             "rater_id" => 'required|exists:users,id',
             'data' => 'required|array',
-            'video' => 'nullable|file|mimes:mp4,mov,avi|max:20480', // Max 20MB
+            'video' => 'nullable|file|mimes:mp4,mov,avi|max:10240', // Max 10MB
             'images.*' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048', // Max 2MB per image
         ]);
         if ($validate->fails()) {
@@ -158,9 +166,7 @@ class EnterpriseController extends Controller
 
         if ($request->hasFile('video')) {
             $video = $request->file('video');
-            $videoFilename = uniqid() . '.' . $video->getClientOriginalExtension();
-            $videoDestination = public_path('RateReview/videos');
-            $video->move($videoDestination, $videoFilename);
+            $videoFilename = $imageService->imageHandle($video, 'RateReview/videos');
             $data['video'] = $videoFilename;
         }
 
@@ -168,9 +174,7 @@ class EnterpriseController extends Controller
             $images = $request->file('images');
             $imageFilenames = [];
             foreach ($images as $image) {
-                $imageFilename = uniqid() . '.' . $image->getClientOriginalExtension();
-                $imageDestination = public_path('RateReview/images');
-                $image->move($imageDestination, $imageFilename);
+                $imageFilename = $imageService->imageHandle($image, 'RateReview/images');
                 $imageFilenames[] = $imageFilename;
             }
             $data['images'] = $imageFilenames;
@@ -790,4 +794,30 @@ class EnterpriseController extends Controller
 
     }
 
+    public function getInventory(Request $request)
+    {
+        $validate = Validator::make($request->all(), [
+            'user_id' => 'required|exists:users,id',
+            'crop_name' => 'required',
+            'crop_type' => 'required|in:crop,livestock'
+        ]);
+        if ($validate->fails()) {
+            return response()->json(['error' => $validate->errors()], 404);
+        }
+        $record = null;
+        if ($request->crop_type == 'livestock') {
+            $record = LivestockInventory::where('user_id', operator: $request->user_id)
+                ->where('crop_name', $request->crop_name)
+                ->latest()
+                ->first();
+        } else if ($request->crop_type == 'crop') {
+            $record = CropInventory::where('user_id', $request->user_id)
+                ->where('crop_name', $request->crop_name)
+                ->where('crop_type', $request->crop_type)
+                ->latest()
+                ->first();
+        }
+
+        return response()->json(['success' => true, 'data' => $record], 200);
+    }
 }

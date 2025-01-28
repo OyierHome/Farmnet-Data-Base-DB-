@@ -133,8 +133,7 @@ class UserController extends Controller
                     'success',
                     ['message' => 'User and organization created successfully'],
                     [
-                        'user' => $user,
-                        'organization' => $organization ? $organization : null,
+                        'user' => $user->with('organization')->with('profile')->first(),
                     ]
                 ],
                 200,
@@ -149,13 +148,17 @@ class UserController extends Controller
 
     public function verifyUser(Request $request)
     {
-
         $user = User::where('email', $request->email)->first();
-        if ($user->verify_code == $request->verificationCode) {
+        if (!$user) {
+            return response()->json(['error' => 'User not found'], 404);
+        }
+        if ($user && $user->verify_code == $request->verificationCode) {
             $user->verify_code = null;
             $user->email_verified_at = now();
             $user->save();
-            return response()->json(['success' => 'User verified successfully', 'user' => ' ' . $user->with('organization')->first()], 200, []);
+            return response()->json(['success' => 'User verified successfully', 'user' => $user->with('organization')->with('profile')->first()], 200, []);
+        } else {
+            return response()->json(['error' => 'Verification Code is not correct'], 422);
         }
     }
 
@@ -177,10 +180,10 @@ class UserController extends Controller
 
             return response()->json([
                 'token' => $token,
-                'user' => $user,
+                'user' => $user->with('organization')->with('profile')->first(),
             ]);
         } else {
-            return response()->json(['error' => 'UnAuthorised'], 401);
+            return response()->json(['error' => 'Unauthorized'], 401);
         }
     }
 
@@ -264,5 +267,19 @@ class UserController extends Controller
         } else {
             return response()->json(['error' => 'Verification Code is not correct'], 422);
         }
+    }
+
+    public function getUserByUniqueID(Request $request){
+        $validate = Validator::make($request->all(), [
+            'unique_id' => 'required',
+        ]);
+        if ($validate->fails()) {
+            return response()->json(['error' => $validate->errors()], 422);
+        }
+        $user = User::where('unique_id', $request->unique_id)->with('organization')->first();
+        if (!$user) {
+            return response()->json(['error' => 'User not found'], 404);
+        }
+        return response()->json(['success' => 'User found', 'user' => $user], 200);
     }
 }

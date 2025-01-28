@@ -21,7 +21,6 @@ class AddBookingController extends Controller
             ]);
         }
         $currentTime = microtime(true) * 1000;
-
         $data = AddBooking::where('page', $request->page)
             ->where('payment_status', 'approved')
             ->where('from_time', '<=', $currentTime)
@@ -29,12 +28,8 @@ class AddBookingController extends Controller
             ->get();
 
 
-
-        $data->each(function ($booking) {
-            $booking->advertisements = $booking->advertisiment()->get();
-            $booking->advertisements->each(function ($advertisement) {
-                $advertisement->product_image = url("advertisement/{$advertisement->product_image}");
-            });
+        $data->each(function (AddBooking $booking) {
+            $booking->advertisiment = $booking->advertisiment()->get();
         });
         return response()->json([
             "status" => "success",

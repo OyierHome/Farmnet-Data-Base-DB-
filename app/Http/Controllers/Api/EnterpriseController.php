@@ -793,7 +793,6 @@ class EnterpriseController extends Controller
         ], 200);
 
     }
-
     public function getInventory(Request $request)
     {
         $validate = Validator::make($request->all(), [
@@ -806,7 +805,7 @@ class EnterpriseController extends Controller
         }
         $record = null;
         if ($request->crop_type == 'livestock') {
-            $record = LivestockInventory::where('user_id', operator: $request->user_id)
+            $record = LivestockInventory::where('user_id',  $request->user_id)
                 ->where('crop_name', $request->crop_name)
                 ->latest()
                 ->first();
@@ -819,5 +818,47 @@ class EnterpriseController extends Controller
         }
 
         return response()->json(['success' => true, 'data' => $record], 200);
+    }
+
+    public function monetInOut(Request $request)
+    {
+        $validate = Validator::make($request->all(), [
+            'user_id' => 'required|exists:users,id',
+        ]);
+        if ($validate->fails()) {
+            return response()->json(['error' => $validate->errors()], 404);
+        }
+        $user = User::find($request->user_id);
+        if (!$user) {
+            return response()->json(['error' => 'User not found'], 404);
+        }
+
+        $moneyIn = Bill::where('user_id', $request->user_id)
+            ->where('bill_type', 'invoice')
+            ->get();
+        $moneyOut = Bill::where('data->customer_info->customer_id', $user->unique_id)
+            ->where('bill_type', 'invoice')
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'money_in' => $moneyIn,
+            'money_out' => $moneyOut
+        ], 200);
+    }
+
+    public function getBillById(Request $request)
+    {
+        $validate = Validator::make($request->all(), [
+            'bill_id' => 'required|exists:bills,id'
+        ]);
+        if ($validate->fails()) {
+            return response()->json(['error' => $validate->errors()], 404);
+        }
+        $bill = Bill::find($request->bill_id);
+        if (!$bill) {
+            return response()->json(['error' => 'Bill not found'], 404);
+        }
+        return response()->json(['success' => true, 'data' => $bill], 200);
     }
 }

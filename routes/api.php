@@ -76,28 +76,31 @@ Route::post('/enterprise/livestock/create/revenue', [\App\Http\Controllers\Api\E
 
 
 // Enterprise Routes
-Route::post('/enterprise/create/test' , [EnterpriseController::class,'create_testing']);
-Route::post('/enterprise/create/bill' , [EnterpriseController::class,'create_bill']);
-Route::post('/enterprise/create/statement' , [EnterpriseController::class,'create_statement']);
-Route::post('/enterprise/create/food/certificate' , [EnterpriseController::class,'create_food_certificate']);
-Route::post('/enterprise/create/plan' , [EnterpriseController::class,'create_plan']);
-Route::post('/enterprise/create/tak' , [EnterpriseController::class,'create_task']);
+Route::post('/enterprise/create/test', [EnterpriseController::class, 'create_testing']);
+Route::post('/enterprise/create/bill', [EnterpriseController::class, 'create_bill']);
+Route::post('/enterprise/create/statement', [EnterpriseController::class, 'create_statement']);
+Route::post('/enterprise/create/food/certificate', [EnterpriseController::class, 'create_food_certificate']);
+Route::post('/enterprise/create/plan', [EnterpriseController::class, 'create_plan']);
+Route::post('/enterprise/create/tak', [EnterpriseController::class, 'create_task']);
 
-Route::post('/enterprise/create/fund_insurance' , [EnterpriseController::class,'request_fund_insurance']);
-Route::post('/enterprise/create/review' , [EnterpriseController::class,'Rate_review']);
-Route::post('/enterprise/create/reward' , [EnterpriseController::class,'add_rewards']);
+Route::post('/enterprise/create/fund_insurance', [EnterpriseController::class, 'request_fund_insurance']);
+Route::post('/enterprise/create/review', [EnterpriseController::class, 'Rate_review']);
+Route::post('/enterprise/create/reward', [EnterpriseController::class, 'add_rewards']);
 
-Route::post('/enterprise/crop/production' , [EnterpriseController::class,'crop_report_production']);
-Route::post('/enterprise/crop/revenue' , [EnterpriseController::class,'crop_report_revenue']);
-Route::post('/enterprise/crop/inventory' , [EnterpriseController::class,'crop_report_inventory']);
+Route::post('/enterprise/crop/production', [EnterpriseController::class, 'crop_report_production']);
+Route::post('/enterprise/crop/revenue', [EnterpriseController::class, 'crop_report_revenue']);
+Route::post('/enterprise/crop/inventory', [EnterpriseController::class, 'crop_report_inventory']);
 
-Route::post('/enterprise/livestock/production' , [EnterpriseController::class,'livestock_report_production']);
-Route::post('/enterprise/livestock/revenue' , [EnterpriseController::class,'livestock_report_revenue']);
-Route::post('/enterprise/livestock/inventory' , [EnterpriseController::class,'livestock_report_inventory']);
+Route::post('/enterprise/livestock/production', [EnterpriseController::class, 'livestock_report_production']);
+Route::post('/enterprise/livestock/revenue', [EnterpriseController::class, 'livestock_report_revenue']);
+Route::post('/enterprise/livestock/inventory', [EnterpriseController::class, 'livestock_report_inventory']);
 
-//Crop Inventory
+//Enterprise Invoice Crop Inventory
 
-Route::post('/enterprise/crop/inventory/get' , [EnterpriseController::class,'getInventory']);
+Route::post('/enterprise/crop/inventory/get', [EnterpriseController::class, 'getInventory']);
+//Enterprise Money In Out
+Route::post('/enterprise/money/in/out', [EnterpriseController::class, 'monetInOut']);
+Route::post('/enterprise/bill', [EnterpriseController::class, 'getBillById']);
 
 // Profile routes
 Route::post('/profile/create', [ProfileController::class, 'create_or_update']);
@@ -105,5 +108,5 @@ Route::post('/profile/certificate', [ProfileController::class, 'add_certificate'
 
 
 //Settings Routes
-Route::post('settings/update/uses',[SettingController::class,'upDateUsers']);
-Route::post('settings/create/update',[SettingController::class,'create_updateSetting']);
+Route::post('settings/update/uses', [SettingController::class, 'upDateUsers']);
+Route::post('settings/create/update', [SettingController::class, 'create_updateSetting']);

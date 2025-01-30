@@ -108,5 +108,7 @@ Route::post('/profile/certificate', [ProfileController::class, 'add_certificate'
 
 
 //Settings Routes
-Route::post('settings/update/uses', [SettingController::class, 'upDateUsers']);
-Route::post('settings/create/update', [SettingController::class, 'create_updateSetting']);
+Route::post('/settings/update/uses', [SettingController::class, 'upDateUsers']);
+Route::post('/settings/create/update', [SettingController::class, 'create_updateSetting']);
+Route::post('/settings/admin/right', [SettingController::class, 'adminRight']);
+Route::post('/settings/admin/right/get', [SettingController::class, 'getUserRight']);

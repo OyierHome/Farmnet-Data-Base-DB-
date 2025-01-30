@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\AdminRight;
 use App\Models\Setting;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -61,5 +62,37 @@ class SettingController extends Controller
             return response()->json(['message' => 'Setting created successfully', 'setting' => $newSetting], 201);
         }
 
+    }
+
+    public function adminRight(Request $request){
+        $validate = Validator::make($request->all(), [
+            'user_id' => 'required|exists:users,id',
+            'right' => 'required|array',
+        ]);
+        if ($validate->fails()){
+            return response()->json(['error' => $validate->errors()], 404);
+        }
+
+        $AdminRight =AdminRight::updateOrCreate(
+            ['user_id' => $request->user_id],
+            ['right' => $request->right]);
+
+        return response()->json(['message' => 'Right updated successfully', 'right' => $AdminRight], 200);
+    }
+
+    public function getUserRight(Request $request){
+        $validate = Validator::make($request->all(), [
+            'user_id' => 'required|exists:users,id',
+        ]);
+        if ($validate->fails()){
+            return response()->json(['error' => $validate->errors()], 404);
+        }
+
+        $AdminRight =AdminRight::where('user_id', $request->user_id)->first();
+
+        if (!$AdminRight) {
+            return response()->json(['message' => 'No right found'], 404);
+        }
+        return response()->json(['message' => 'Right found successfully', 'right' => $AdminRight], 200);
     }
 }

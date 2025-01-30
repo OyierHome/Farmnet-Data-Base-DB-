@@ -102,4 +102,9 @@ class User extends Authenticatable
     {
         return $this->hasOne(Setting::class);
     }
+    public function admin_right()
+    {
+        return $this->hasOne(AdminRight::class);
+    }
+
 }

@@ -805,7 +805,7 @@ class EnterpriseController extends Controller
         }
         $record = null;
         if ($request->crop_type == 'livestock') {
-            $record = LivestockInventory::where('user_id',  $request->user_id)
+            $record = LivestockInventory::where('user_id', $request->user_id)
                 ->where('crop_name', $request->crop_name)
                 ->latest()
                 ->first();
@@ -860,5 +860,44 @@ class EnterpriseController extends Controller
             return response()->json(['error' => 'Bill not found'], 404);
         }
         return response()->json(['success' => true, 'data' => $bill], 200);
+    }
+
+    public function getSimulator(Request $request)
+    {
+        $validate = Validator::make(request()->all(), [
+            'country' => 'required',
+            'crop_name' => 'required',
+            'crop_type' => 'required',
+        ]);
+        if ($validate->fails()) {
+            return response()->json(['error' => $validate->errors()], 404);
+        }
+        $data = null;
+        if ($request->crop_type == 'livestock') {
+            $data = LivestockProductionRecord::where('crop_name', $request->crop_name)
+                ->where('country', $request->country)
+                ->get();
+        }
+        if ($request->crop_type == 'crop') {
+            $data = CropProductionRecord::where('crop_name', $request->crop_name)
+                ->where('country', $request->country)
+                ->get();
+        }
+
+        if ($data) {
+            $averages = [];
+            foreach ($data as $record) {
+                foreach ($record->toArray() as $key => $value) {
+                    if (is_numeric($value)) {
+                        $averages[$key] = ($averages[$key] ?? 0) + $value;
+                    }
+                }
+            }
+            foreach ($averages as $key => &$value) {
+                $value /= $data->count();
+            }
+        }
+        return response()->json(['success' => true, 'average_data' => $averages], 200);
+
     }
 }

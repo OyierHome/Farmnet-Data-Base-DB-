@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Advertisiment;
 use App\Models\Bill;
 use App\Models\CropInventory;
 use App\Models\CropProductionRecord;
@@ -898,6 +899,21 @@ class EnterpriseController extends Controller
             }
         }
         return response()->json(['success' => true, 'average_data' => $averages], 200);
+
+    }
+
+    public function getCatalogData(Request $request){
+        $validate = Validator::make(request()->all(), [
+            'user_id' => 'required|exists:users,id',
+        ]);
+        if ($validate->fails()) {
+            return response()->json(['error' => $validate->errors()], 404);
+        }
+        $data = Advertisiment::where('user_id', $request->user_id)->get();
+        if (!$data) {
+            return response()->json(['error' => 'No data found'], 404);
+        }
+        return response()->json(['success' => true, 'data' => $data], 200);
 
     }
 }

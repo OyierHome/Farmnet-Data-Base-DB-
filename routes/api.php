@@ -96,6 +96,8 @@ Route::post('/enterprise/livestock/production', [EnterpriseController::class, 'l
 Route::post('/enterprise/livestock/revenue', [EnterpriseController::class, 'livestock_report_revenue']);
 Route::post('/enterprise/livestock/inventory', [EnterpriseController::class, 'livestock_report_inventory']);
 
+//Catalog Data
+Route::post('/enterprise/catalog/get', [EnterpriseController::class, 'getCatalogData']);
 //Simulator
 Route::post('/enterprise/simulator', [EnterpriseController::class, 'getSimulator']);
 

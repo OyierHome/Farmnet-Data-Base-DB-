@@ -910,6 +910,11 @@ class EnterpriseController extends Controller
             return response()->json(['error' => $validate->errors()], 404);
         }
         $data = Advertisiment::where('user_id', $request->user_id)->get();
+        foreach ($data as $item) {
+            if (isset($item->image)) {
+                $item->image = public_path( $item->image);
+            }
+        }
         if (!$data) {
             return response()->json(['error' => 'No data found'], 404);
         }

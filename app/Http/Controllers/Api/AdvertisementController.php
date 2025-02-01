@@ -37,7 +37,7 @@ class AdvertisementController extends Controller
             'diagnosis' => 'required',
             'management' => 'required',
             'product_name' => 'required',
-            'product_image' => 'required|mimes:jpeg,png,jpg,img,web',
+            'product_image' => 'required|string',
             'benefits' => 'required',
             'amount' => 'required',
         ]);
@@ -66,12 +66,6 @@ class AdvertisementController extends Controller
             }
         }
 
-
-        if ($request->hasFile('product_image')) {
-            $filename = $handleImageService->imageHandle($request->file('product_image'), 'advertisement');
-        }
-
-
         $advertisement = $user->advertisements()->create([
             'user_id' => $user->id,
             'crop_type' => $request->crop_type,
@@ -80,7 +74,7 @@ class AdvertisementController extends Controller
             'diagnosis' => $request->diagnosis,
             'management' => $request->management,
             'product_name' => $request->product_name,
-            'product_image' => $filename,
+            'product_image' => $request->product_image,
             'benefits' => $request->benefits,
             'amount' => $request->amount,
         ]);
@@ -98,7 +92,7 @@ class AdvertisementController extends Controller
             'diagnosis' => 'required',
             'management' => 'required',
             'product_name' => 'required',
-            'product_image' => 'nullable|mimes:jpeg,png,jpg,img,web',
+            'product_image' => 'nullable|string',
             'benefits' => 'required',
             'amount' => 'required',
         ]);
@@ -106,25 +100,12 @@ class AdvertisementController extends Controller
         if ($validate->fails()) {
             return response()->json(['error' => $validate->errors()], 400);
         }
-        $user = User::find($request->user_id);
 
+        $user = User::find($request->user_id);
         $advertisement = $user->advertisements()->find($id);
 
         if (!$advertisement) {
             return response()->json(['error' => 'Advertisement not found'], 404);
-        }
-
-        if ($request->hasFile('product_image')) {
-            if ($advertisement->product_image) {
-                $oldImagePath = public_path('advertisement/' . $advertisement->product_image);
-                if (file_exists($oldImagePath)) {
-                    unlink($oldImagePath);
-                }
-            }
-            $image = $request->file('product_image');
-            $filename = uniqid() . '.' . $image->getClientOriginalExtension();
-            $image->move(public_path('advertisement'), $filename);
-            $advertisement->product_image = $filename;
         }
 
         $advertisement->update([
@@ -134,7 +115,7 @@ class AdvertisementController extends Controller
             'diagnosis' => $request->diagnosis,
             'management' => $request->management,
             'product_name' => $request->product_name,
-            'product_image' => $advertisement->product_image,
+            'product_image' => $request->product_image ?? $request->product_image,
             'benefits' => $request->benefits,
             'amount' => $request->amount,
         ]);

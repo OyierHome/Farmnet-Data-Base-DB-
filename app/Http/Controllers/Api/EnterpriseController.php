@@ -86,20 +86,6 @@ class EnterpriseController extends Controller
         if ($validate->fails()) {
             return response()->json(['error' => $validate->errors()], 404);
         }
-        if ($request->hasFile('attachment')) {
-            $attachment = $request->file('attachment');
-            $filename = uniqid() . '.' . $attachment->getClientOriginalExtension();
-            $destination = public_path('Enterprise');
-            $attachment->move($destination, $filename);
-            $data = $request->input('data');
-            // Ensure 'data' is an array and add the new key-value pair
-            if (is_array($data)) {
-                $data['attachment'] = $filename;
-                // Merge the modified 'data' array back into the request
-                $request->merge(['data' => $data]);
-            }
-        }
-
 
         $data = new FoodCertificate($request->all());
         $data->save();
@@ -154,8 +140,8 @@ class EnterpriseController extends Controller
             "user_id" => 'required|exists:users,id',
             "rater_id" => 'required|exists:users,id',
             'data' => 'required|array',
-            'video' => 'nullable|file|mimes:mp4,mov,avi|max:10240', // Max 10MB
-            'images.*' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048', // Max 2MB per image
+            'video' => 'nullable|string',
+            'images' => 'nullable|array',
         ]);
         if ($validate->fails()) {
             return response()->json(['error' => $validate->errors()], 404);
@@ -164,22 +150,6 @@ class EnterpriseController extends Controller
             return response()->json(['error' => 'You cannot rate yourself'], 404);
         }
         $data = $request->all();
-
-        if ($request->hasFile('video')) {
-            $video = $request->file('video');
-            $videoFilename = $imageService->imageHandle($video, 'RateReview/videos');
-            $data['video'] = $videoFilename;
-        }
-
-        if ($request->hasFile('images')) {
-            $images = $request->file('images');
-            $imageFilenames = [];
-            foreach ($images as $image) {
-                $imageFilename = $imageService->imageHandle($image, 'RateReview/images');
-                $imageFilenames[] = $imageFilename;
-            }
-            $data['images'] = $imageFilenames;
-        }
 
         $rateReview = new Rate($data);
         $rateReview->save();
@@ -902,7 +872,8 @@ class EnterpriseController extends Controller
 
     }
 
-    public function getCatalogData(Request $request){
+    public function getCatalogData(Request $request)
+    {
         $validate = Validator::make(request()->all(), [
             'user_id' => 'required|exists:users,id',
         ]);
@@ -910,11 +881,7 @@ class EnterpriseController extends Controller
             return response()->json(['error' => $validate->errors()], 404);
         }
         $data = Advertisiment::where('user_id', $request->user_id)->get();
-        foreach ($data as $item) {
-            if (isset($item->image)) {
-                $item->image = public_path( $item->image);
-            }
-        }
+
         if (!$data) {
             return response()->json(['error' => 'No data found'], 404);
         }

@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\EnterpriseController;
 use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\SettingController;
 use App\Http\Controllers\Api\UserController;
+use App\Http\Controllers\Api\WeatherController;
 use App\Http\Controllers\LivestockController;
 use App\Http\Controllers\MarketOverview;
 use Illuminate\Http\Request;
@@ -115,3 +116,6 @@ Route::post('/settings/update/uses', [SettingController::class, 'upDateUsers']);
 Route::post('/settings/create/update', [SettingController::class, 'create_updateSetting']);
 Route::post('/settings/admin/right', [SettingController::class, 'adminRight']);
 Route::post('/settings/admin/right/get', [SettingController::class, 'getUserRight']);
+
+// Weather Apis
+Route::post('/weather/current', [WeatherController::class, 'show']);
